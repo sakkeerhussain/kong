@@ -7,10 +7,12 @@ local constants = require("kong.constants")
 local wrpc_proto = require("kong.tools.wrpc.proto")
 local cjson = require("cjson.safe")
 local utils = require("kong.tools.utils")
+local process = require("ngx.process")
 local negotiation = require("kong.clustering.services.negotiation")
 local init_negotiation_client = negotiation.init_negotiation_client
 local negotiate = negotiation.negotiate
 local get_negotiated_service = negotiation.get_negotiated_service
+
 
 local assert = assert
 local setmetatable = setmetatable
@@ -59,7 +61,7 @@ function _M:init_worker(plugins_list)
 
   self.plugins_list = plugins_list
 
-  if ngx.worker.id() == 0 then
+  if process.type() == "privileged agent" then
     communicate(self)
   end
 end

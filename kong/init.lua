@@ -86,6 +86,7 @@ local migrations_utils = require "kong.cmd.utils.migrations"
 local plugin_servers = require "kong.runloop.plugin_servers"
 local lmdb_txn = require "resty.lmdb.transaction"
 local instrumentation = require "kong.tracing.instrumentation"
+local process = require "ngx.process"
 local tablepool = require "tablepool"
 local get_ctx_table = require("resty.core.ctx").get_ctx_table
 
@@ -108,6 +109,7 @@ local ngx_DEBUG        = ngx.DEBUG
 local is_http_module   = ngx.config.subsystem == "http"
 local is_stream_module = ngx.config.subsystem == "stream"
 local start_time       = ngx.req.start_time
+local worker_id        = ngx.worker.id
 local type             = type
 local error            = error
 local ipairs           = ipairs
@@ -346,7 +348,7 @@ local function execute_cache_warmup(kong_config)
     return true
   end
 
-  if ngx.worker.id() == 0 then
+  if worker_id() == 0 then
     local ok, err = cache_warmup.execute(kong_config.db_cache_warmup_entities)
     if not ok then
       return nil, err
@@ -592,6 +594,13 @@ function Kong.init()
   db:close()
 
   require("resty.kong.var").patch_metatable()
+
+  if config.role == "data_plane" then
+    local ok, err = process.enable_privileged_agent(2048)
+    if not ok then
+      error(err)
+    end
+  end
 end
 
 
@@ -621,7 +630,7 @@ function Kong.init_worker()
     return
   end
 
-  if ngx.worker.id() == 0 then
+  if worker_id() == 0 then
     if schema_state.missing_migrations then
       ngx_log(ngx_WARN, "missing migrations: ",
               list_migrations(schema_state.missing_migrations))
@@ -667,78 +676,80 @@ function Kong.init_worker()
 
   kong.db:set_events_handler(worker_events)
 
-  if kong.configuration.database == "off" then
-    -- databases in LMDB need to be explicitly created, otherwise `get`
-    -- operations will return error instead of `nil`. This ensures the default
-    -- namespace always exists in the
-    local t = lmdb_txn.begin(1)
-    t:db_open(true)
-    ok, err = t:commit()
+  if process.type ~= "privileged agent" then
+    if kong.configuration.database == "off" then
+      -- databases in LMDB need to be explicitly created, otherwise `get`
+      -- operations will return error instead of `nil`. This ensures the default
+      -- namespace always exists in the
+      local t = lmdb_txn.begin(1)
+      t:db_open(true)
+      ok, err = t:commit()
+      if not ok then
+        stash_init_worker_error("failed to create and open LMDB database: " .. err)
+        return
+      end
+
+      if not has_declarative_config(kong.configuration) and
+        declarative.get_current_hash() ~= nil then
+        -- if there is no declarative config set and a config is present in LMDB,
+        -- just build the router and plugins iterator
+        ngx_log(ngx_INFO, "found persisted lmdb config, loading...")
+        local ok, err = declarative_init_build()
+        if not ok then
+          stash_init_worker_error("failed to initialize declarative config: " .. err)
+          return
+        end
+      elseif declarative_entities then
+        ok, err = load_declarative_config(kong.configuration,
+                                          declarative_entities,
+                                          declarative_meta)
+        if not ok then
+          stash_init_worker_error("failed to load declarative config file: " .. err)
+          return
+        end
+
+      else
+        -- stream does not need to load declarative config again, just build
+        -- the router and plugins iterator
+        local ok, err = declarative_init_build()
+        if not ok then
+          stash_init_worker_error("failed to initialize declarative config: " .. err)
+          return
+        end
+      end
+    end
+
+    if kong.configuration.role ~= "control_plane" then
+      ok, err = execute_cache_warmup(kong.configuration)
+      if not ok then
+        ngx_log(ngx_ERR, "failed to warm up the DB cache: " .. err)
+      end
+    end
+
+    runloop.init_worker.before()
+
+    -- run plugins init_worker context
+    ok, err = runloop.update_plugins_iterator()
     if not ok then
-      stash_init_worker_error("failed to create and open LMDB database: " .. err)
+      stash_init_worker_error("failed to build the plugins iterator: " .. err)
       return
     end
 
-    if not has_declarative_config(kong.configuration) and
-      declarative.get_current_hash() ~= nil then
-      -- if there is no declarative config set and a config is present in LMDB,
-      -- just build the router and plugins iterator
-      ngx_log(ngx_INFO, "found persisted lmdb config, loading...")
-      local ok, err = declarative_init_build()
-      if not ok then
-        stash_init_worker_error("failed to initialize declarative config: " .. err)
-        return
-      end
-    elseif declarative_entities then
-      ok, err = load_declarative_config(kong.configuration,
-                                        declarative_entities,
-                                        declarative_meta)
-      if not ok then
-        stash_init_worker_error("failed to load declarative config file: " .. err)
-        return
-      end
-
-    else
-      -- stream does not need to load declarative config again, just build
-      -- the router and plugins iterator
-      local ok, err = declarative_init_build()
-      if not ok then
-        stash_init_worker_error("failed to initialize declarative config: " .. err)
-        return
+    local plugins_iterator = runloop.get_plugins_iterator()
+    local errors = execute_init_worker_plugins_iterator(plugins_iterator, ctx)
+    if errors then
+      for _, e in ipairs(errors) do
+        local err = "failed to execute the \"init_worker\" " ..
+                    "handler for plugin \"" .. e.plugin .."\": " .. e.err
+        stash_init_worker_error(err)
       end
     end
-  end
 
-  if kong.configuration.role ~= "control_plane" then
-    ok, err = execute_cache_warmup(kong.configuration)
-    if not ok then
-      ngx_log(ngx_ERR, "failed to warm up the DB cache: " .. err)
+    runloop.init_worker.after()
+
+    if kong.configuration.role ~= "control_plane" and worker_id() == 0 then
+      plugin_servers.start()
     end
-  end
-
-  runloop.init_worker.before()
-
-  -- run plugins init_worker context
-  ok, err = runloop.update_plugins_iterator()
-  if not ok then
-    stash_init_worker_error("failed to build the plugins iterator: " .. err)
-    return
-  end
-
-  local plugins_iterator = runloop.get_plugins_iterator()
-  local errors = execute_init_worker_plugins_iterator(plugins_iterator, ctx)
-  if errors then
-    for _, e in ipairs(errors) do
-      local err = "failed to execute the \"init_worker\" " ..
-                  "handler for plugin \"" .. e.plugin .."\": " .. e.err
-      stash_init_worker_error(err)
-    end
-  end
-
-  runloop.init_worker.after()
-
-  if kong.configuration.role ~= "control_plane" and ngx.worker.id() == 0 then
-    plugin_servers.start()
   end
 
   if kong.clustering then
@@ -748,7 +759,7 @@ end
 
 
 function Kong.exit_worker()
-  if kong.configuration.role ~= "control_plane" and ngx.worker.id() == 0 then
+  if process.type ~= "privileged agent" and kong.configuration.role ~= "control_plane" and worker_id() == 0 then
     plugin_servers.stop()
   end
 end

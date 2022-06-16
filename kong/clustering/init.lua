@@ -6,6 +6,7 @@ local pl_file = require("pl.file")
 local pl_tablex = require("pl.tablex")
 local ssl = require("ngx.ssl")
 local openssl_x509 = require("resty.openssl.x509")
+local process = require("ngx.process")
 local ngx_log = ngx.log
 local assert = assert
 local sort = table.sort
@@ -171,7 +172,7 @@ function _M:init_worker()
     return
   end
 
-  if role == "data_plane" and ngx.worker.id() == 0 then
+  if role == "data_plane" and process.type() == "privileged agent" then
     self:init_dp_worker(plugins_list)
   end
 end

@@ -67,6 +67,13 @@
 
 ## Unreleased
 
+### Additions
+
+#### Performance
+
+- Data plane's connection to control plane is moved to a privileged worker process
+  [#9432](https://github.com/Kong/kong/pull/9432)
+
 ### Fixes
 
 #### Core
