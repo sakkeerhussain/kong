@@ -35,19 +35,12 @@ pipeline {
                 sh 'make setup-kong-build-tools'
                 sh 'cd ../kong-build-tools && make package-kong test'
             }
-            
         }
         stage('Release -- Branch Release to Unofficial Asset Stores') {
             when {
                 beforeAgent true
                 anyOf { 
                     branch 'master';
-                }
-            }
-            when {
-                beforeAgent true
-                anyOf { 
-                    branch 'fix/master-builds';
                 }
             }
             environment {
