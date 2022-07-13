@@ -44,11 +44,38 @@ pipeline {
                     branch 'master';
                 }
             }
+            when {
+                beforeAgent true
+                anyOf { 
+                    branch 'fix/master-builds';
+                }
+            }
             environment {
                 KONG_TEST_IMAGE_NAME = "kong/kong:branch"
                 DOCKER_RELEASE_REPOSITORY = "kong/kong"
+                DOCKER_REPOSITORY = "kong/kong-build-tools"
             }
             parallel {
+                stage('Development Base Image') {
+                    agent {
+                        node {
+                            label 'bionic'
+                        }
+                    }
+                    environment {
+                        GITHUB_SSH_KEY = credentials('github_bot_ssh_key')
+                        KONG_SOURCE_LOCATION = "${env.WORKSPACE}"
+                        KONG_BUILD_TOOLS_LOCATION = "${env.WORKSPACE}/../kong-build-tools"
+                    }
+                    steps {
+                        sh './scripts/setup-ci.sh'
+                        sh 'make setup-kong-build-tools'
+
+                        sh 'cd $KONG_BUILD_TOOLS_LOCATION && make kong-test-container'
+                        sh 'docker tag $DOCKER_REPOSITORY:test $DOCKER_REPOSITORY:test-${GIT_BRANCH##*/}'
+                        sh 'docker push $DOCKER_REPOSITORY:test-${GIT_BRANCH##*/}'
+                    }
+                }
                 stage('Alpine') {
                     agent {
                         node {
