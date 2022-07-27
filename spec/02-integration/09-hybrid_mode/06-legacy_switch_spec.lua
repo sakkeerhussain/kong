@@ -35,7 +35,7 @@ for _, proto in ipairs({ "json", "wrpc" }) do
   for _, strategy in helpers.each_strategy() do
 
     local is_legacy = proto == "json"
-    local exp_status = is_legacy and 405 or 200
+    local exp_status = is_legacy and 404 or 200
     local enabled = is_legacy and "enabled" or "disabled"
 
     describe("legacy_hybrid_protocol (" .. enabled .. ")", function()

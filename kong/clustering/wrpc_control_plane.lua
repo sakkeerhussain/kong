@@ -174,12 +174,8 @@ _M.check_configuration_compatibility = clustering_utils.check_configuration_comp
 
 
 function _M:handle_cp_websocket()
-  if self.conf.legacy_hybrid_protocol then
-    ngx_log(ngx_DEBUG, "received a request to the wRPC listener, but wRPC is disabled")
-    return ngx_exit(405)
-
-  elseif get_method() == "HEAD" then
-    -- feature detection/version negotiation request from a DP
+  if get_method() == "HEAD" then
+    -- feature detection request from a DP node
     return ngx_exit(200)
   end
 
