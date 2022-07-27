@@ -66,6 +66,8 @@ for _, proto in ipairs({ "json", "wrpc" }) do
 
       it("data-plane nodes connect using the correct endpoint/protocol", function()
         if is_legacy then
+          -- ensure that the data-plane has connected _before_ asserting that
+          -- no `[wrpc-clustering]` log line exists
           assert.logfile().has_line("[clustering] data plane connected", true)
           assert.logfile().has_no_line("[wrpc-clustering] ", true)
         else
