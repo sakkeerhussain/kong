@@ -34,7 +34,7 @@ for _, strategy in helpers.each_strategy() do
         local service = {
           host = "example-" .. i .. ".com",
           name = "service" .. i,
-          tags = { "team a", "level "..fmod(i, 5), "service"..i }
+          tags = { "team_ a", "level "..fmod(i, 5), "service"..i }
         }
         local row, err, err_t = bp.services:insert(service)
         assert.is_nil(err)
@@ -62,12 +62,12 @@ for _, strategy in helpers.each_strategy() do
     end)
 
     it("list entity IDs by tag", function()
-      local rows, err, err_t, offset = db.tags:page_by_tag("team a")
+      local rows, err, err_t, offset = db.tags:page_by_tag("team_ a")
       assert(is_valid_page(rows, err, err_t))
       assert.is_nil(offset)
       assert.equal(test_entity_count, #rows)
       for _, row in ipairs(rows) do
-        assert.equal("team a", row.tag)
+        assert.equal("team_ a", row.tag)
       end
 
       rows, err, err_t, offset = db.tags:page_by_tag("team alien")
@@ -107,7 +107,7 @@ for _, strategy in helpers.each_strategy() do
         local func, key, removed_tag = unpack(scenario)
 
         it(func, function()
-          local tags = { "team_b_" .. func, "team a" }
+          local tags = { "team_b_" .. func, "team_ a" }
           local row, err, err_t = db.services[func](db.services,
           key, { tags = tags, host = 'whatever.com' })
 
@@ -124,7 +124,7 @@ for _, strategy in helpers.each_strategy() do
           assert.is_nil(offset)
           assert.equal(test_entity_count*3 - removed_tags_count, #rows)
 
-          rows, err, err_t, offset = db.tags:page_by_tag("team a")
+          rows, err, err_t, offset = db.tags:page_by_tag("team_ a")
           assert(is_valid_page(rows, err, err_t))
           assert.is_nil(offset)
           assert.equal(test_entity_count, #rows)
@@ -170,7 +170,7 @@ for _, strategy in helpers.each_strategy() do
           assert.is_nil(offset)
           assert.equal(test_entity_count*3 - removed_tags_count, #rows)
 
-          rows, err, err_t, offset = db.tags:page_by_tag("team a")
+          rows, err, err_t, offset = db.tags:page_by_tag("team_ a")
           assert(is_valid_page(rows, err, err_t))
           assert.is_nil(offset)
           assert.equal(test_entity_count - i, #rows)

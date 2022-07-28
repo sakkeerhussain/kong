@@ -19,7 +19,7 @@ describe("Admin API - tags", function()
         for i = 1, 2 do
           local consumer = {
             username = "adminapi-filter-by-tag-" .. i,
-            tags = { "corp a",  "consumer "..i, "🦍" }
+            tags = { "corp_ a", "consumer_ "..i, "🦍" }
           }
           local row, err, err_t = bp.consumers:insert(consumer)
           assert.is_nil(err)
@@ -32,7 +32,7 @@ describe("Admin API - tags", function()
             config = {
               path = os.tmpname(),
             },
-            tags = { "corp a", "consumer " .. i }
+            tags = { "corp_ a", "consumer_ " .. i }
           })
         end
 
@@ -50,13 +50,13 @@ describe("Admin API - tags", function()
       it("filter by single tag", function()
         local res = assert(client:send {
           method = "GET",
-          path = "/consumers?tags=corp%20a"
+          path = "/consumers?tags=corp_%20a"
         })
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
         assert.equals(2, #json.data)
         for i = 1, 2 do
-          assert.contains('corp a', json.data[i].tags)
+          assert.contains('corp_ a', json.data[i].tags)
         end
       end)
 
@@ -76,21 +76,21 @@ describe("Admin API - tags", function()
       it("filter by multiple tags with AND", function()
         local res = assert(client:send {
           method = "GET",
-          path = "/consumers?tags=corp%20a,consumer%201"
+          path = "/consumers?tags=corp_%20a,consumer_%201"
         })
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
         assert.equals(1, #json.data)
         assert.equals(3, #json.data[1].tags)
-        assert.contains('corp a', json.data[1].tags)
-        assert.contains('consumer 1', json.data[1].tags)
+        assert.contains('corp_ a', json.data[1].tags)
+        assert.contains('consumer_ 1', json.data[1].tags)
         assert.contains('🦍', json.data[1].tags)
       end)
 
       it("filter by multiple tags with OR", function()
         local res = assert(client:send {
           method = "GET",
-          path = "/consumers?tags=consumer%202/consumer%201"
+          path = "/consumers?tags=consumer_%202/consumer_%201"
         })
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
@@ -98,20 +98,20 @@ describe("Admin API - tags", function()
       end)
 
       it("ignores tags when filtering by multiple filters #6779", function()
-        local res = client:get("/consumers/adminapi-filter-by-tag-1/plugins?tags=consumer%202")
+        local res = client:get("/consumers/adminapi-filter-by-tag-1/plugins?tags=consumer_%202")
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
         assert.equals(1, #json.data)
 
-        assert.contains('corp a', json.data[1].tags)
-        assert.contains('consumer 1', json.data[1].tags)
-        assert.not_contains('consumer 2', json.data[1].tags)
+        assert.contains('corp_ a', json.data[1].tags)
+        assert.contains('consumer_ 1', json.data[1].tags)
+        assert.not_contains('consumer_ 2', json.data[1].tags)
       end)
 
       it("errors if filter by mix of AND and OR", function()
         local res = assert(client:send {
           method = "GET",
-          path = "/consumers?tags=consumer%203,consumer%202/consumer%201"
+          path = "/consumers?tags=consumer_%203,consumer_%202/consumer_%201"
         })
         local body = assert.res_status(400, res)
         local json = cjson.decode(body)
@@ -119,7 +119,7 @@ describe("Admin API - tags", function()
 
         local res = assert(client:send {
           method = "GET",
-          path = "/consumers?tags=consumer%203/consumer%202,consumer%201"
+          path = "/consumers?tags=consumer_%203/consumer_%202,consumer_%201"
         })
         local body = assert.res_status(400, res)
         local json = cjson.decode(body)
@@ -137,7 +137,7 @@ describe("Admin API - tags", function()
       end)
 
       it("returns the correct 'next' arg", function()
-        local tags_arg = 'tags=corp%20a'
+        local tags_arg = 'tags=corp_%20a'
         local res = assert(client:send {
           method = "GET",
           path = "/consumers?" .. tags_arg .. "&size=1"
@@ -161,7 +161,7 @@ describe("Admin API - tags", function()
         for i = 1, 2 do
           local consumer = {
             username = "adminapi-filter-by-tag-" .. i,
-            tags = { "corp a",  "consumer "..i }
+            tags = { "corp_ a",  "consumer_ "..i }
           }
           local row, err, err_t = bp.consumers:insert(consumer)
           assert.is_nil(err)
@@ -193,7 +193,7 @@ describe("Admin API - tags", function()
       it("/tags/:tags", function()
         local res = assert(client:send {
           method = "GET",
-          path = "/tags/corp%20a"
+          path = "/tags/corp_%20a"
         })
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
@@ -231,7 +231,7 @@ describe("Admin API - tags", function()
       it("/tags/:tags ignores ?tags= query", function()
         local res = assert(client:send {
           method = "GET",
-          path = "/tags/corp%20a?tags=not_a_tag"
+          path = "/tags/corp_%20a?tags=not_a_tag"
         })
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
@@ -239,7 +239,7 @@ describe("Admin API - tags", function()
 
         local res = assert(client:send {
           method = "GET",
-          path = "/tags/corp%20a?tags=invalid@tag"
+          path = "/tags/corp_%20a?tags=invalid@tag"
         })
         local body = assert.res_status(200, res)
         local json = cjson.decode(body)
