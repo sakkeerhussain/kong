@@ -353,7 +353,7 @@ function _M.check_protocol_support(conf, cert, cert_key)
   if status == 200 then
     return "v1" -- wrpc
 
-  elseif status == 404 or res.status == 405 then
+  elseif status == 404 then
     return "v0"
   end
 
