@@ -223,7 +223,7 @@ local function query_entity(context, self, db, schema, method)
     end
 
     local key = self.params[schema.name]
-    if type(key) == "string" then
+    if schema.name == "tags" then
       key = unescape_uri(key)
     end
     return dao[method](dao, key, size, args.offset, opts)
