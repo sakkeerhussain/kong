@@ -340,10 +340,19 @@
   [#8735](https://github.com/Kong/kong/pull/8735)
 - **AWS-Lambda**: add support for cross account invocation through
   configuration properties `aws_assume_role_arn` and
+<<<<<<< HEAD
   `aws_role_session_name`.
   [#8900](https://github.com/Kong/kong/pull/8900)
 - Sync all plugin versions to the Kong version
   [#8772](https://github.com/Kong/kong/pull/8772)
+=======
+  `aws_role_session_name`.[#8900](https://github.com/Kong/kong/pull/8900)
+- **AWS-Lambda**: accept string type `statusCode` as valid return when
+  working in proxy integration mode.
+  [#8765](https://github.com/Kong/kong/pull/8765)
+- **AWS-Lmabda**: separate aws credential cache by IAM role ARN
+  [#8907](https://github.com/Kong/kong/pull/8907)
+>>>>>>> 5591785d9 (docs(changelog) update changelog)
 
 #### Configuration
 
@@ -389,6 +398,8 @@
   [#8668] https://github.com/Kong/kong/pull/8668
 - Moved all `.proto` files to `/usr/local/kong/include` and ordered by priority.
   [#8914](https://github.com/Kong/kong/pull/8914)
+- Fixed an issue that cause unexpected 404 error on creating/updating configs with invalid options
+  [#8831](https://github.com/Kong/kong/pull/8831)
 
 #### Plugins
 
@@ -411,6 +422,8 @@
   [#9058](https://github.com/Kong/kong/pull/9058) [#9129](https://github.com/Kong/kong/pull/9129)
 - **LDAP-Auth**: Refactored ASN.1 parser using OpenSSL API through FFI.
   [#8663](https://github.com/Kong/kong/pull/8663)
+- **Rate-Limiting** and **Response-ratelimiting**: Fix a disordered behaviour caused by `pairs` function
+  which may cause Postgres DEADLOCK problem [#8968](https://github.com/Kong/kong/pull/8968)
 
 
 #### Clustering
