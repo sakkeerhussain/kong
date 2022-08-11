@@ -374,6 +374,10 @@ function _M.new(db)
     }
   end)
 
+  res.vaults = new_blueprint(db.vaults, function()
+    return {}
+  end)
+
   return res
 end
 

@@ -5,7 +5,7 @@ return {
       config = {
         type = "record",
         fields = {
-          { value = { type = "string" } },
+          { value = { type = "string", referenceable = true } },
           { extra = { type = "string", default = "extra" } },
         },
       },
