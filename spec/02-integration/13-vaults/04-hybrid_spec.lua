@@ -103,8 +103,7 @@ for _, strategy in helpers.each_strategy() do
               return json.headers
                  and json.headers["rewriter"]
                  and json.headers["rewriter"] == header
-            end, 10, 0.5)
-
+            end, 15, 0.5)
           end
 
           -- 1. create a route and service
