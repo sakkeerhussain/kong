@@ -83,7 +83,7 @@ for _, strategy in helpers.each_strategy() do
           local proxy
 
           local function wait_until_request(req, status, header)
-            helpers.wait_until(function()
+            local ok, err = pcall(helpers.wait_until, function()
               proxy = proxy or helpers.proxy_client(nil, 9002)
 
               local res, err = proxy:send(req)
@@ -103,7 +103,22 @@ for _, strategy in helpers.each_strategy() do
               return json.headers
                  and json.headers["rewriter"]
                  and json.headers["rewriter"] == header
-            end, 60, 0.5)
+            end, 15, 0.5)
+
+            if not ok then
+              print("\n\nSOMETHING HAS GONE AWRY, MY FRIEND\n\n")
+
+              local log = helpers.file.read("servroot/logs/error.log")
+
+              print("CONTROL PLANE LOG:\n")
+              print(log)
+              print("\n----------------------------------------------------\n")
+
+              log = helpers.file.read("servroot2/logs/error.log")
+              print("DATA PLANE LOG:\n")
+              print(log)
+              print("\n----------------------------------------------------\n")
+            end
           end
 
           -- 1. create a route and service
