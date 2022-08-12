@@ -106,11 +106,9 @@ for _, strategy in helpers.each_strategy() do
             end, 15, 0.5)
 
             if not ok then
-              print("\n\nSOMETHING HAS GONE AWRY, MY FRIEND\n\n")
-
               local log = helpers.file.read("servroot/logs/error.log")
 
-              print("CONTROL PLANE LOG:\n")
+              print("\nCONTROL PLANE LOG:\n")
               print(log)
               print("\n----------------------------------------------------\n")
 
@@ -118,6 +116,8 @@ for _, strategy in helpers.each_strategy() do
               print("DATA PLANE LOG:\n")
               print(log)
               print("\n----------------------------------------------------\n")
+
+              error("SOMETHING HAS GONE AWRY, MY FRIEND")
             end
           end
 
