@@ -424,6 +424,7 @@ function _M:handle_cp_websocket()
 
         config_hash = data
         last_seen = ngx_time()
+        sync_status = config_hash == self.current_hashes.config and sync_status or CLUSTERING_SYNC_STATUS.CONFIG_UNSYNC
         update_sync_status()
 
         -- queue PONG to avoid races

@@ -191,6 +191,7 @@ local constants = {
   CLUSTER_ID_PARAM_KEY = "cluster_id",
 
   CLUSTERING_SYNC_STATUS = {
+    { CONFIG_UNSYNC               = "config_unsync", },
     { UNKNOWN                     = "unknown", },
     { NORMAL                      = "normal", },
     { KONG_VERSION_INCOMPATIBLE   = "kong_version_incompatible", },
