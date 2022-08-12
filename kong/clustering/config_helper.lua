@@ -205,6 +205,11 @@ end
 function _M.update(declarative_config, config_table, config_hash, hashes)
   assert(type(config_table) == "table")
 
+  ngx.log(ngx.NOTICE, require("inspect")({
+    evt = "updating config...",
+    config = config_table,
+  }))
+
   if not config_hash then
     config_hash, hashes = calculate_config_hash(config_table)
   end
