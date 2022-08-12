@@ -34,6 +34,7 @@ for _, strategy in helpers.each_strategy() do
               "routes",
               "services",
               "vaults",
+              "sm_vaults",
               "plugins",
             },
             nil, -- plugins
