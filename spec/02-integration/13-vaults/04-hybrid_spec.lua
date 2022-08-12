@@ -117,7 +117,7 @@ for _, strategy in helpers.each_strategy() do
               print(log)
               print("\n----------------------------------------------------\n")
 
-              error("SOMETHING HAS GONE AWRY, MY FRIEND")
+              error("SOMETHING HAS GONE AWRY, MY FRIEND:\n" .. tostring(err) .. "\n")
             end
           end
 
