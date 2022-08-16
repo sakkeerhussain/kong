@@ -1,0 +1,24 @@
+diff --git a/kong/clustering/control_plane.lua b/kong/clustering/control_plane.lua
+index 362fa4133..b8f415170 100644
+--- a/kong/clustering/control_plane.lua
++++ b/kong/clustering/control_plane.lua
+@@ -943,6 +943,7 @@ function _M:handle_cp_websocket()
+ 
+         config_hash = data
+         last_seen = ngx_time()
++        sync_status = config_hash == self.current_hashes.config and sync_status or CLUSTERING_SYNC_STATUS.CONFIG_UNSYNC
+         update_sync_status()
+ 
+         -- queue PONG to avoid races
+diff --git a/kong/constants.lua b/kong/constants.lua
+index cbe3902c7..1dc2456b7 100644
+--- a/kong/constants.lua
++++ b/kong/constants.lua
+@@ -229,6 +229,7 @@ local constants = {
+   CLUSTER_ID_PARAM_KEY = "cluster_id",
+ 
+   CLUSTERING_SYNC_STATUS = {
++    { CONFIG_UNSYNC               = "config_unsync", },
+     { UNKNOWN                     = "unknown", },
+     { NORMAL                      = "normal", },
+     { KONG_VERSION_INCOMPATIBLE   = "kong_version_incompatible", },

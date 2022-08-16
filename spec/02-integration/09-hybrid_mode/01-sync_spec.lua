@@ -74,6 +74,15 @@ for _, strategy in helpers.each_strategy() do
               admin_client:close()
             end)
 
+            local clock = os.clock
+            local function sleep(n)
+              local t0 = clock()
+              local dots = ''
+              print("sleep " .. n)
+              while clock() - t0 <= n do end
+            end
+            sleep(3)
+
             local res = assert(admin_client:get("/clustering/data-planes"))
             local body = assert.res_status(200, res)
             local json = cjson.decode(body)
