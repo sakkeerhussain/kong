@@ -197,12 +197,9 @@
   [#9028](https://github.com/Kong/kong/pull/9028)
 - **ACME**: `allow_any_domain` field added. It is default to false and if set to true, the gateway will
   ignore the `domains` field.
-<<<<<<< HEAD
+  [#9047](https://github.com/Kong/kong/pull/9047)
 - Plugins with colliding priorities have now deterministic sorting based on their name
   [#8957](https://github.com/Kong/kong/pull/8957)
-=======
-  [#9047](https://github.com/Kong/kong/pull/9047)
->>>>>>> 1cdb7496e (docs(changelog) update changelog)
 
 ### Deprecations
 
@@ -329,6 +326,8 @@
 
 #### Plugins
 
+- Sync all plugin versions to the Kong version
+  [#8772](https://github.com/Kong/kong/pull/8772)
 - Introduced the new **OpenTelemetry** plugin that export tracing instrumentations
   to any OTLP/HTTP compatible backend.
   `opentelemetry_tracing` configuration should be enabled to collect
@@ -344,19 +343,13 @@
   [#8735](https://github.com/Kong/kong/pull/8735)
 - **AWS-Lambda**: add support for cross account invocation through
   configuration properties `aws_assume_role_arn` and
-<<<<<<< HEAD
-  `aws_role_session_name`.
-  [#8900](https://github.com/Kong/kong/pull/8900)
-- Sync all plugin versions to the Kong version
-  [#8772](https://github.com/Kong/kong/pull/8772)
-=======
   `aws_role_session_name`.[#8900](https://github.com/Kong/kong/pull/8900)
+  [#8900](https://github.com/Kong/kong/pull/8900)
 - **AWS-Lambda**: accept string type `statusCode` as valid return when
   working in proxy integration mode.
   [#8765](https://github.com/Kong/kong/pull/8765)
-- **AWS-Lmabda**: separate aws credential cache by IAM role ARN
+- **AWS-Lambda**: separate aws credential cache by IAM role ARN
   [#8907](https://github.com/Kong/kong/pull/8907)
->>>>>>> 5591785d9 (docs(changelog) update changelog)
 
 #### Configuration
 
@@ -373,6 +366,7 @@
   [#8670](https://github.com/Kong/kong/pull/8670)
 
 #### PDK
+
 - Added new PDK function: `kong.request.get_start_time()`
   [#8688](https://github.com/Kong/kong/pull/8688)
 
