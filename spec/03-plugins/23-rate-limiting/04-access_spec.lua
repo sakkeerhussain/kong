@@ -558,7 +558,7 @@ for _, strategy in helpers.each_strategy() do
             end)
           end)
           describe("Without authentication (IP address)", function()
-            it_with_retry("blocks if exceeding limit #grpc", function()
+            it_with_retry("blocks if exceeding limit #grpc #only", function()
               for i = 1, 6 do
                 local ok, res = helpers.proxy_client_grpc(){
                   service = "hello.HelloService.SayHello",
