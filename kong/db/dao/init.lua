@@ -1113,28 +1113,29 @@ function DAO:insert(entity, options)
 
   local entity_to_insert, err, err_t = check_insert(self, entity, options)
   if not entity_to_insert then
-    return nil, err, err_t
+    ngx.log(ngx.ERR, require("inspect")(entity))
+    return nil, err .. require("inspect")(entity) .. require("inspect")(entity_to_insert), err_t
   end
 
   local ok, err_t = run_hook("dao:insert:pre", entity, self.schema.name, options)
   if not ok then
-    return nil, tostring(err_t), err_t
+    return nil, tostring(err_t .. require("inspect")(entity) .. require("inspect")(entity_to_insert)), err_t
   end
 
   local row, err_t = self.strategy:insert(entity_to_insert, options)
   if not row then
-    return nil, tostring(err_t), err_t
+    return nil, tostring(err_t .. require("inspect")(entity) .. require("inspect")(entity_to_insert)), err_t
   end
 
   local ws_id = row.ws_id
   row, err, err_t = self:row_to_entity(row, options)
   if not row then
-    return nil, err, err_t
+    return nil, tostring(err_t .. require("inspect")(entity) .. require("inspect")(entity_to_insert)), err_t
   end
 
   row, err_t = run_hook("dao:insert:post", row, self.schema.name, options, ws_id)
   if not row then
-    return nil, tostring(err_t), err_t
+    return nil, tostring(err_t .. require("inspect")(entity) .. require("inspect")(entity_to_insert)), err_t
   end
 
   self:post_crud_event("create", row, nil, options)
