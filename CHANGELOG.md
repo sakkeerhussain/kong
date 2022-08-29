@@ -67,6 +67,13 @@
 
 ## Unreleased
 
+### Fixes
+
+#### Core
+
+- Fixed an issue where `kong docker-start` would fail if KONG_PREFIX was set to
+  a relative path. [#9337](https://github.com/Kong/kong/pull/9337)
+
 ## [3.0.0-alpha.1]
 
 > Released 2022/08/23
