@@ -67,9 +67,17 @@
 
 ## Unreleased
 
+### Additions
+
+#### Core
+
+- Add support for full entity transformations in schemas
+  [#9431](https://github.com/Kong/kong/pull/9431)
+
 ### Fixes
 
 #### Core
+
 - Fix issue where external plugins crashing with unhandled exceptions
   would cause high CPU utilization after the automatic restart.
   [#9384](https://github.com/Kong/kong/pull/9384)
