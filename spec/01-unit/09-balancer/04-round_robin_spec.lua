@@ -784,7 +784,7 @@ describe("[round robin balancer]", function()
         hosts = {},  -- no hosts, so balancer is empty
         dns = client,
         wheelSize = 10,
-        callback = function(balancer, action, ip, port, hostname)
+        callback = function(balancer, action, addr, ip, port, hostname, hostheader)
           table.insert(order_of_events, "callback")
           -- this callback is called when updating. So yield here and
           -- verify that the second thread does not interfere with
@@ -1294,16 +1294,17 @@ describe("[round robin balancer]", function()
       })
       for _ = 1, b.wheelSize do
         local ip = assert(b:getPeer())
-        assert.equal(record[1].address, ip)
+        assert.equal(ip, record[1].address)
       end
       -- wait for ttl to expire
       sleep(ttl + 0.1)
       targets.resolve_targets(b.targets)
+      sleep(0.1) -- for updates to catch up with async callbacks
       -- run entire wheel to make sure the expired one is requested, so it can fail
       for _ = 1, b.wheelSize do
         local ip, port = b:getPeer()
         assert.is_nil(ip)
-        assert.equal(port, "Balancer is unhealthy")
+        assert.equal("Balancer is unhealthy", port)
       end
     end)
     it("renewed DNS A record; unhealthy entries remain unhealthy after renewal", function()
